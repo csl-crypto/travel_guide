@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ko">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>푸꾸옥 여행 가이드</title>
+	<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+	<div class="app-shell">
+		<header class="app-header">
+			<div class="trip-title">
+				<p>2026.07.29 - 08.02</p>
+				<h1>푸꾸옥 여행 가이드</h1>
+			</div>
+			<div class="header-actions">
+				<a href="#dayView">일정</a>
+				<a href="#timeTable">시간표</a>
+				<a href="#links">링크</a>
+			</div>
+		</header>
+
+		<main>
+			<section class="quick-panel" aria-label="여행 요약">
+				<div>
+					<span>기간</span>
+					<strong>4박 5일</strong>
+				</div>
+				<div>
+					<span>항공</span>
+					<strong>제주항공 7C2315</strong>
+				</div>
+				<div>
+					<span>핵심</span>
+					<strong>사파리 · 혼똔섬 · 선셋타운</strong>
+				</div>
+			</section>
+
+			<section class="section" id="dayView">
+				<div class="section-head">
+					<div>
+						<p class="kicker">DAY PLAN</p>
+						<h2>일자별 보기</h2>
+					</div>
+					<p>날짜를 누르면 해당 일정만 크게 볼 수 있습니다.</p>
+				</div>
+				<div class="day-strip" id="dayTabs" aria-label="날짜 선택"></div>
+				<div class="day-card" id="dayCard"></div>
+			</section>
+
+			<section class="section" id="timeTable">
+				<div class="section-head">
+					<div>
+						<p class="kicker">TIME TABLE</p>
+						<h2>전체 시간표</h2>
+					</div>
+					<p>원본 캡처 없이도 볼 수 있도록 같은 내용을 새 표로 정리했습니다.</p>
+				</div>
+				<div class="time-table" id="timeTableBox"></div>
+			</section>
+
+			<section class="section" id="links">
+				<div class="section-head">
+					<div>
+						<p class="kicker">LINKS</p>
+						<h2>장소와 참고 링크</h2>
+					</div>
+					<p>지도와 검색 링크는 새 탭으로 열립니다.</p>
+				</div>
+				<div class="link-grid" id="linkGrid"></div>
+			</section>
+
+			<section class="section" id="checklist">
+				<div class="section-head">
+					<div>
+						<p class="kicker">CHECKLIST</p>
+						<h2>출발 전 확인</h2>
+					</div>
+					<p>체크 상태는 현재 브라우저에만 저장됩니다.</p>
+				</div>
+				<div class="check-list" id="checkList"></div>
+			</section>
+		</main>
+
+		<nav class="bottom-nav" aria-label="하단 바로가기">
+			<a href="#dayView">일정</a>
+			<a href="#timeTable">시간표</a>
+			<a href="#links">링크</a>
+			<a href="#checklist">체크</a>
+		</nav>
+	</div>
+
+	<script src="app.js"></script>
+</body>
+</html>
