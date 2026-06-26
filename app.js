@@ -135,6 +135,7 @@ function renderDayTabs() {
 			activeDayId = day.id;
 			renderDayTabs();
 			renderDayCard();
+			renderTimeTable();
 		});
 		return button;
 	}));
@@ -175,10 +176,14 @@ function timelineItem(item) {
 
 function renderTimeTable() {
 	const box = document.getElementById("timeTableBox");
-	const rows = collectTimeRows();
-	box.replaceChildren(...rows.map((row) => {
+	const day = days.find((item) => item.id === activeDayId) || days[0];
+	const header = document.createElement("div");
+	header.className = "table-day-head";
+	header.innerHTML = `<strong>${escapeHtml(day.label)} ${escapeHtml(day.title)}</strong><span>${escapeHtml(day.subtitle)}</span>`;
+	const rows = collectTimeRows(day);
+	box.replaceChildren(header, ...rows.map((row, index) => {
 		const element = document.createElement("div");
-		element.className = "table-row";
+		element.className = `table-row tone-${index % 5}`;
 		const time = document.createElement("div");
 		time.className = "table-time";
 		time.textContent = row.time;
@@ -187,7 +192,11 @@ function renderTimeTable() {
 		row.items.forEach((item) => {
 			const cell = document.createElement("div");
 			cell.className = "table-event";
-			cell.innerHTML = `<strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.dayLabel)} · ${escapeHtml(item.body)}</span>`;
+			cell.innerHTML = `<strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.body)}</span><div class="tag-row"></div><div class="link-row"></div>`;
+			const tagRow = cell.querySelector(".tag-row");
+			item.tags.forEach((tag) => tagRow.append(tagElement(tag, item.alert)));
+			const linkRow = cell.querySelector(".link-row");
+			item.links.forEach((itemLink) => linkRow.append(anchor(itemLink)));
 			events.append(cell);
 		});
 		element.append(time, events);
@@ -195,15 +204,13 @@ function renderTimeTable() {
 	}));
 }
 
-function collectTimeRows() {
+function collectTimeRows(day) {
 	const mapByTime = new Map();
-	days.forEach((day) => {
-		day.events.forEach((item) => {
-			if (!mapByTime.has(item.time)) {
-				mapByTime.set(item.time, []);
-			}
-			mapByTime.get(item.time).push({ ...item, dayLabel: day.label });
-		});
+	day.events.forEach((item) => {
+		if (!mapByTime.has(item.time)) {
+			mapByTime.set(item.time, []);
+		}
+		mapByTime.get(item.time).push(item);
 	});
 	return [...mapByTime.entries()]
 		.map(([time, items]) => ({ time, items }))

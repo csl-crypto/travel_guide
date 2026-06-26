@@ -316,7 +316,27 @@ h2 {
 	overflow: hidden;
 }
 
+.table-day-head {
+	padding: 16px;
+	color: #fff;
+	background: linear-gradient(135deg, var(--deep), #0f766e);
+}
+
+.table-day-head strong {
+	display: block;
+	font-size: 22px;
+	line-height: 1.3;
+}
+
+.table-day-head span {
+	display: block;
+	margin-top: 5px;
+	color: #dceff2;
+	line-height: 1.55;
+}
+
 .table-row {
+	position: relative;
 	display: grid;
 	grid-template-columns: 72px minmax(0, 1fr);
 	border-bottom: 1px solid #e4ecf2;
@@ -327,12 +347,30 @@ h2 {
 }
 
 .table-time {
+	position: relative;
 	padding: 13px 9px;
 	background: #f0f6f7;
 	color: var(--deep);
 	font-weight: 900;
 	text-align: center;
 	border-right: 1px solid #e4ecf2;
+}
+
+.table-time::after {
+	content: "";
+	position: absolute;
+	top: 48px;
+	left: 50%;
+	bottom: -18px;
+	width: 3px;
+	transform: translateX(-50%);
+	border-radius: 999px;
+	background: currentColor;
+	opacity: 0.24;
+}
+
+.table-row:last-child .table-time::after {
+	display: none;
 }
 
 .table-events {
@@ -342,10 +380,11 @@ h2 {
 }
 
 .table-event {
-	padding: 10px;
-	border: 1px solid #e2eaf0;
+	padding: 12px;
+	border: 1px solid rgba(255, 255, 255, 0.7);
 	border-radius: 8px;
 	background: var(--surface-soft);
+	box-shadow: 0 8px 18px rgba(16, 32, 51, 0.07);
 }
 
 .table-event strong {
@@ -357,9 +396,48 @@ h2 {
 .table-event span {
 	display: block;
 	margin-top: 4px;
-	color: var(--muted);
+	color: #344054;
 	font-size: 13px;
-	font-weight: 800;
+	line-height: 1.55;
+}
+
+.tone-0 .table-time,
+.tone-0 .table-event {
+	background: #e0f7f2;
+	color: #0f766e;
+}
+
+.tone-1 .table-time,
+.tone-1 .table-event {
+	background: #eef4ff;
+	color: #1849a9;
+}
+
+.tone-2 .table-time,
+.tone-2 .table-event {
+	background: #fff1d6;
+	color: #9a4b00;
+}
+
+.tone-3 .table-time,
+.tone-3 .table-event {
+	background: #f2e9ff;
+	color: #6941c6;
+}
+
+.tone-4 .table-time,
+.tone-4 .table-event {
+	background: #ffe8e0;
+	color: #b54708;
+}
+
+.table-event .tag-row,
+.table-event .link-row {
+	margin-top: 8px;
+}
+
+.table-event .link-row a {
+	background: rgba(255, 255, 255, 0.72);
 }
 
 .link-grid {
