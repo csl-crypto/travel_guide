@@ -110,7 +110,6 @@ let activeDayId = days[0].id;
 
 document.addEventListener("DOMContentLoaded", () => {
 	renderDayTabs();
-	renderDayCard();
 	renderTimeTable();
 	renderLinks();
 	renderChecklist();
@@ -134,44 +133,10 @@ function renderDayTabs() {
 		button.addEventListener("click", () => {
 			activeDayId = day.id;
 			renderDayTabs();
-			renderDayCard();
 			renderTimeTable();
 		});
 		return button;
 	}));
-}
-
-function renderDayCard() {
-	const day = days.find((item) => item.id === activeDayId) || days[0];
-	const card = document.getElementById("dayCard");
-	const summary = document.createElement("div");
-	summary.className = "day-summary";
-	summary.innerHTML = `<strong>${escapeHtml(day.label)} ${escapeHtml(day.title)}</strong><span>${escapeHtml(day.subtitle)}</span>`;
-
-	const timeline = document.createElement("div");
-	timeline.className = "timeline";
-	day.events.forEach((item) => timeline.append(timelineItem(item)));
-
-	card.replaceChildren(summary, timeline);
-}
-
-function timelineItem(item) {
-	const article = document.createElement("article");
-	article.className = "timeline-item";
-	article.innerHTML = `
-		<div class="time">${escapeHtml(item.time)}</div>
-		<div class="event">
-			<h3>${escapeHtml(item.title)}</h3>
-			<p>${escapeHtml(item.body)}</p>
-			<div class="tag-row"></div>
-			<div class="link-row"></div>
-		</div>
-	`;
-	const tagRow = article.querySelector(".tag-row");
-	item.tags.forEach((tag) => tagRow.append(tagElement(tag, item.alert)));
-	const linkRow = article.querySelector(".link-row");
-	item.links.forEach((itemLink) => linkRow.append(anchor(itemLink)));
-	return article;
 }
 
 function renderTimeTable() {

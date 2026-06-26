@@ -25,7 +25,6 @@ html {
 
 body {
 	margin: 0;
-	padding-bottom: 112px;
 	font-family: "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif;
 	color: var(--ink);
 	background: var(--bg);
@@ -46,12 +45,8 @@ a {
 }
 
 .app-header {
-	position: sticky;
-	top: 0;
-	z-index: 20;
 	display: grid;
-	gap: 12px;
-	padding: 14px 14px 12px;
+	padding: 12px 14px;
 	width: 100%;
 	overflow: hidden;
 	color: #fff;
@@ -83,14 +78,6 @@ h1 {
 	letter-spacing: 0;
 }
 
-.header-actions {
-	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
-	gap: 8px;
-	min-width: 0;
-}
-
-.header-actions a,
 .bottom-nav a {
 	display: inline-flex;
 	align-items: center;
@@ -101,12 +88,6 @@ h1 {
 	text-decoration: none;
 	font-weight: 900;
 	white-space: nowrap;
-}
-
-.header-actions a {
-	border: 1px solid rgba(255, 255, 255, 0.28);
-	background: rgba(255, 255, 255, 0.1);
-	color: #fff;
 }
 
 main {
@@ -122,7 +103,6 @@ main {
 }
 
 .quick-panel div,
-.day-card,
 .time-table,
 .link-card,
 .check-list {
@@ -204,71 +184,6 @@ h2 {
 	background: var(--deep);
 	border-color: var(--deep);
 	color: #fff;
-}
-
-.day-card {
-	overflow: hidden;
-}
-
-.day-summary {
-	padding: 16px;
-	color: #fff;
-	background: linear-gradient(135deg, var(--deep), var(--teal));
-}
-
-.day-summary strong {
-	display: block;
-	font-size: 23px;
-	line-height: 1.25;
-}
-
-.day-summary span {
-	display: block;
-	margin-top: 6px;
-	color: #dceff2;
-	line-height: 1.55;
-}
-
-.timeline {
-	display: grid;
-	gap: 0;
-}
-
-.timeline-item {
-	display: grid;
-	grid-template-columns: 72px minmax(0, 1fr);
-	gap: 12px;
-	padding: 15px;
-	border-bottom: 1px solid #e4ecf2;
-}
-
-.timeline-item:last-child {
-	border-bottom: 0;
-}
-
-.time {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	align-self: start;
-	min-height: 34px;
-	padding: 0 8px;
-	border-radius: 999px;
-	background: var(--teal-soft);
-	color: var(--teal);
-	font-weight: 900;
-}
-
-.event h3 {
-	font-size: 17px;
-	line-height: 1.35;
-}
-
-.event p {
-	margin-top: 6px;
-	color: #475467;
-	line-height: 1.6;
-	overflow-wrap: anywhere;
 }
 
 .tag-row,
@@ -377,9 +292,11 @@ h2 {
 	display: grid;
 	gap: 8px;
 	padding: 10px;
+	min-width: 0;
 }
 
 .table-event {
+	min-width: 0;
 	padding: 12px;
 	border: 1px solid rgba(255, 255, 255, 0.7);
 	border-radius: 8px;
@@ -399,6 +316,7 @@ h2 {
 	color: #344054;
 	font-size: 13px;
 	line-height: 1.55;
+	overflow-wrap: anywhere;
 }
 
 .tone-0 .table-time,
@@ -498,27 +416,29 @@ h2 {
 }
 
 .bottom-nav {
-	position: fixed;
+	position: sticky;
 	z-index: 30;
+	top: 0;
 	left: 0;
 	right: 0;
-	bottom: 0;
 	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: 6px;
-	padding: 8px 10px;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 4px;
+	padding: 6px 8px;
 	border: 0;
-	border-top: 1px solid rgba(255, 255, 255, 0.28);
+	border-top: 1px solid rgba(255, 255, 255, 0.18);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.18);
 	border-radius: 0;
 	background: rgba(16, 57, 71, 0.94);
-	box-shadow: 0 12px 32px rgba(16, 32, 51, 0.26);
+	box-shadow: 0 8px 20px rgba(16, 32, 51, 0.16);
 	backdrop-filter: blur(12px);
 }
 
 .bottom-nav a {
-	min-height: 40px;
+	min-height: 36px;
 	color: #fff;
-	font-size: 13px;
+	font-size: 11px;
+	overflow: hidden;
 }
 
 .bottom-nav a:active {
@@ -526,23 +446,13 @@ h2 {
 }
 
 @media (min-width: 720px) {
-	body {
-		padding-bottom: 0;
-	}
-
 	.app-header {
-		position: static;
-		grid-template-columns: minmax(0, 1fr) auto;
 		align-items: center;
 		padding: 22px clamp(24px, 5vw, 62px);
 	}
 
 	h1 {
 		font-size: 34px;
-	}
-
-	.header-actions {
-		width: 320px;
 	}
 
 	main {
@@ -558,31 +468,8 @@ h2 {
 		align-items: end;
 	}
 
-	.day-card {
-		display: grid;
-		grid-template-columns: 280px minmax(0, 1fr);
-	}
-
-	.day-summary {
-		min-height: 100%;
-	}
-
 	.link-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-
-	.bottom-nav {
-		display: none;
-	}
-}
-
-@media (max-width: 520px) {
-	.header-actions {
-		grid-template-columns: 1fr;
-	}
-
-	.header-actions a {
-		font-size: 15px;
 	}
 }
 
