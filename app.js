@@ -107,6 +107,7 @@ const checklist = [
 ];
 
 let activeDayId = days[0].id;
+let selectedEventKey = "";
 
 document.addEventListener("DOMContentLoaded", () => {
 	renderDayTabs();
@@ -132,6 +133,7 @@ function renderDayTabs() {
 		button.textContent = day.label;
 		button.addEventListener("click", () => {
 			activeDayId = day.id;
+			selectedEventKey = "";
 			renderDayTabs();
 			renderTimeTable();
 		});
@@ -144,7 +146,8 @@ function renderTimeTable() {
 	const day = days.find((item) => item.id === activeDayId) || days[0];
 	const header = document.createElement("div");
 	header.className = "table-day-head";
-	header.innerHTML = `<strong>${escapeHtml(day.label)} ${escapeHtml(day.title)}</strong><span>${escapeHtml(day.subtitle)}</span>`;
+	const weatherLinks = weatherLink(day);
+	header.innerHTML = `<strong>${escapeHtml(day.label)} ${escapeHtml(day.title)}</strong><span>${escapeHtml(day.subtitle)}</span><div class="weather-links">${weatherLinks.map((weather) => `<a class="weather-link" href="${weather.href}" target="_blank" rel="noreferrer" aria-label="${escapeHtml(weather.title)}"><b aria-hidden="true">${escapeHtml(weather.icon)}</b>${escapeHtml(weather.label)}</a>`).join("")}</div>`;
 	const rows = collectTimeRows(day);
 	box.replaceChildren(header, ...rows.map((row, index) => {
 		const element = document.createElement("div");
@@ -154,16 +157,40 @@ function renderTimeTable() {
 		time.textContent = row.time;
 		const events = document.createElement("div");
 		events.className = "table-events";
-		row.items.forEach((item) => {
+		row.items.forEach((item, itemIndex) => {
+			const eventKey = `${day.id}:${row.time}:${itemIndex}`;
+			const selected = selectedEventKey === eventKey;
 			const cell = document.createElement("div");
-			cell.className = "table-event";
+			cell.className = `table-event${selected ? " selected" : ""}`;
+			cell.dataset.time = row.time;
+			cell.tabIndex = 0;
+			cell.role = "button";
+			cell.setAttribute("aria-pressed", selected ? "true" : "false");
 			cell.innerHTML = `<strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.body)}</span><div class="tag-row"></div><div class="link-row"></div>`;
 			const tagRow = cell.querySelector(".tag-row");
 			item.tags.forEach((tag) => tagRow.append(tagElement(tag, item.alert)));
 			const linkRow = cell.querySelector(".link-row");
 			item.links.forEach((itemLink) => linkRow.append(anchor(itemLink)));
+			cell.addEventListener("click", (event) => {
+				if (event.target.closest("a")) {
+					return;
+				}
+				selectedEventKey = eventKey;
+				renderTimeTable();
+			});
+			cell.addEventListener("keydown", (event) => {
+				if (event.key !== "Enter" && event.key !== " ") {
+					return;
+				}
+				event.preventDefault();
+				selectedEventKey = eventKey;
+				renderTimeTable();
+			});
 			events.append(cell);
 		});
+		if (row.items.some((item, itemIndex) => selectedEventKey === `${day.id}:${row.time}:${itemIndex}`)) {
+			element.classList.add("table-row--selected");
+		}
 		element.append(time, events);
 		return element;
 	}));
@@ -228,21 +255,55 @@ function anchor(itemLink) {
 	const link = document.createElement("a");
 	link.href = itemLink.href;
 	link.textContent = itemLink.label;
+	link.title = itemLink.title || itemLink.label;
+	link.setAttribute("aria-label", itemLink.title || itemLink.label);
 	link.target = "_blank";
 	link.rel = "noreferrer";
 	return link;
 }
 
 function official(label, href) {
-	return { label, href };
+	return linkItem("공식", label, href);
 }
 
 function map(query) {
-	return { label: "지도", href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}` };
+	return linkItem("구글지도", query, `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`);
 }
 
 function search(query) {
-	return { label: "검색", href: `https://search.naver.com/search.naver?query=${encodeURIComponent(query)}` };
+	return linkItem("네이버검색", query, `https://search.naver.com/search.naver?query=${encodeURIComponent(query)}`);
+}
+
+function weatherLink(day) {
+	const dateLabel = weatherDateLabel(day.label);
+	return [
+		{
+			icon: "☁",
+			label: "Windy 날씨",
+			title: `${dateLabel} 푸꾸옥 Windy 날씨 보기`,
+			href: "https://www.windy.com/10.289/103.984?10.289,103.984,10"
+		},
+		{
+			icon: "☂",
+			label: "Yr.no 날씨",
+			title: `${dateLabel} 푸꾸옥 Yr.no 날씨 보기`,
+			href: "https://www.yr.no/en/forecast/daily-table/2-12253704/Vietnam/An%20Giang/Ph%C3%BA%20Qu%E1%BB%91c%20District/Ph%C3%BA%20Qu%E1%BB%91c"
+		}
+	];
+}
+
+function weatherDateLabel(label) {
+	const [month, date] = String(label).split("/");
+	return `2026년 ${Number(month)}월 ${Number(date)}일`;
+}
+
+function linkItem(type, text, href) {
+	const detail = String(text ?? "").trim();
+	return {
+		label: `${type}: ${detail}`,
+		title: `${type} 링크 - ${detail}`,
+		href
+	};
 }
 
 function escapeHtml(value) {
