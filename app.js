@@ -130,7 +130,7 @@ function renderDayTabs() {
 		const button = document.createElement("button");
 		button.type = "button";
 		button.className = `day-tab${day.id === activeDayId ? " active" : ""}`;
-		button.textContent = day.label;
+		button.innerHTML = `<span>${escapeHtml(day.label)}</span><small>${escapeHtml(weekdayLabel(day))}</small>`;
 		button.addEventListener("click", () => {
 			activeDayId = day.id;
 			selectedEventKey = "";
@@ -141,13 +141,24 @@ function renderDayTabs() {
 	}));
 }
 
+function weekdayLabel(day) {
+	const weekdays = {
+		d0729: "수",
+		d0730: "목",
+		d0731: "금",
+		d0801: "토",
+		d0802: "일"
+	};
+	return weekdays[day.id] || "";
+}
+
 function renderTimeTable() {
 	const box = document.getElementById("timeTableBox");
 	const day = days.find((item) => item.id === activeDayId) || days[0];
 	const header = document.createElement("div");
 	header.className = "table-day-head";
 	const weatherLinks = weatherLink(day);
-	header.innerHTML = `<strong>${escapeHtml(day.label)} ${escapeHtml(day.title)}</strong><span>${escapeHtml(day.subtitle)}</span><div class="weather-links">${weatherLinks.map((weather) => `<a class="weather-link" href="${weather.href}" target="_blank" rel="noreferrer" aria-label="${escapeHtml(weather.title)}"><b aria-hidden="true">${escapeHtml(weather.icon)}</b>${escapeHtml(weather.label)}</a>`).join("")}</div>`;
+	header.innerHTML = `<strong>${escapeHtml(day.label)}(${escapeHtml(weekdayLabel(day))}) ${escapeHtml(day.title)}</strong><span>${escapeHtml(day.subtitle)}</span><div class="weather-links">${weatherLinks.map((weather) => `<a class="weather-link" href="${weather.href}" target="_blank" rel="noreferrer" aria-label="${escapeHtml(weather.title)}"><b aria-hidden="true">${escapeHtml(weather.icon)}</b>${escapeHtml(weather.label)}</a>`).join("")}</div>`;
 	const rows = collectTimeRows(day);
 	box.replaceChildren(header, ...rows.map((row, index) => {
 		const element = document.createElement("div");
@@ -170,7 +181,7 @@ function renderTimeTable() {
 			const tagRow = cell.querySelector(".tag-row");
 			item.tags.forEach((tag) => tagRow.append(tagElement(tag, item.alert)));
 			const linkRow = cell.querySelector(".link-row");
-			item.links.forEach((itemLink) => linkRow.append(anchor(itemLink)));
+			item.links.forEach((itemLink) => linkRow.append(anchor(itemLink, selected)));
 			cell.addEventListener("click", (event) => {
 				if (event.target.closest("a")) {
 					return;
@@ -251,15 +262,46 @@ function tagElement(text, alert) {
 	return span;
 }
 
-function anchor(itemLink) {
+function anchor(itemLink, expanded = false) {
 	const link = document.createElement("a");
+	const provider = linkProvider(itemLink.href);
 	link.href = itemLink.href;
-	link.textContent = itemLink.label;
+	link.textContent = provider && !expanded ? shortLinkLabel(itemLink.label, provider) : fullLinkLabel(itemLink.label);
 	link.title = itemLink.title || itemLink.label;
 	link.setAttribute("aria-label", itemLink.title || itemLink.label);
 	link.target = "_blank";
 	link.rel = "noreferrer";
+	if (provider) {
+		link.classList.add("icon-link", `icon-link--${provider}`);
+	}
 	return link;
+}
+
+function linkProvider(href) {
+	if (String(href).includes("google.com/maps")) {
+		return "google";
+	}
+	if (String(href).includes("search.naver.com")) {
+		return "naver";
+	}
+	return "";
+}
+
+function shortLinkLabel(label, provider) {
+	const text = String(label ?? "").replace(/^[^:：]+[:：]\s*/, "").trim();
+	const compact = text
+		.replace(/Phu Quoc/gi, "")
+		.replace(/[?？]/g, "")
+		.replace(/\s+/g, " ")
+		.trim();
+	if (!compact) {
+		return provider === "google" ? "지도" : "검색";
+	}
+	return compact.length > 5 ? compact.slice(0, 5) : compact;
+}
+
+function fullLinkLabel(label) {
+	return String(label ?? "").replace(/^[^:：]+[:：]\s*/, "").trim();
 }
 
 function official(label, href) {
