@@ -88,6 +88,9 @@ const linkGroups = [
 		search("푸꾸옥 소나시 야시장"),
 		search("푸꾸옥 선셋타운 맛집")
 	]),
+	linkGroup("마사지 목록", "푸꾸옥 스파와 마사지 후보를 한 번에 확인합니다.", [
+		official("베트남가이드 푸꾸옥 스파", "https://vietnamguide.co.kr/city/phuquoc/places/spas/")
+	]),
 	linkGroup("기본 정보", "날씨, 환율, 공항 정보를 출발 전 확인합니다.", [
 		search("푸꾸옥 날씨 8월"),
 		search("베트남 동 환율"),
@@ -108,6 +111,7 @@ const checklist = [
 
 let activeDayId = days[0].id;
 let selectedEventKey = "";
+let linkPopoverId = 0;
 
 document.addEventListener("DOMContentLoaded", () => {
 	renderDayTabs();
@@ -132,10 +136,12 @@ function renderDayTabs() {
 		button.className = `day-tab${day.id === activeDayId ? " active" : ""}`;
 		button.innerHTML = `<span>${escapeHtml(day.label)}</span><small>${escapeHtml(weekdayLabel(day))}</small>`;
 		button.addEventListener("click", () => {
-			activeDayId = day.id;
-			selectedEventKey = "";
-			renderDayTabs();
-			renderTimeTable();
+			runViewTransition(() => {
+				activeDayId = day.id;
+				selectedEventKey = "";
+				renderDayTabs();
+				renderTimeTable();
+			});
 		});
 		return button;
 	}));
@@ -181,21 +187,25 @@ function renderTimeTable() {
 			const tagRow = cell.querySelector(".tag-row");
 			item.tags.forEach((tag) => tagRow.append(tagElement(tag, item.alert)));
 			const linkRow = cell.querySelector(".link-row");
-			item.links.forEach((itemLink) => linkRow.append(anchor(itemLink, selected)));
+			item.links.forEach((itemLink) => linkRow.append(linkControl(itemLink, selected)));
 			cell.addEventListener("click", (event) => {
-				if (event.target.closest("a")) {
+				if (event.target.closest("a, button, [popover]")) {
 					return;
 				}
-				selectedEventKey = eventKey;
-				renderTimeTable();
+				runViewTransition(() => {
+					selectedEventKey = eventKey;
+					renderTimeTable();
+				});
 			});
 			cell.addEventListener("keydown", (event) => {
 				if (event.key !== "Enter" && event.key !== " ") {
 					return;
 				}
 				event.preventDefault();
-				selectedEventKey = eventKey;
-				renderTimeTable();
+				runViewTransition(() => {
+					selectedEventKey = eventKey;
+					renderTimeTable();
+				});
 			});
 			events.append(cell);
 		});
@@ -235,7 +245,7 @@ function renderLinks() {
 		const card = document.createElement("article");
 		card.className = "link-card";
 		card.innerHTML = `<h3>${escapeHtml(group.title)}</h3><p>${escapeHtml(group.body)}</p><div class="link-row"></div>`;
-		group.links.forEach((itemLink) => card.querySelector(".link-row").append(anchor(itemLink)));
+		group.links.forEach((itemLink) => card.querySelector(".link-row").append(linkControl(itemLink, true)));
 		return card;
 	}));
 }
@@ -260,6 +270,33 @@ function tagElement(text, alert) {
 	span.className = `tag${alert || text.includes("필요") || text.includes("확인") ? " alert" : ""}`;
 	span.textContent = text;
 	return span;
+}
+
+function linkControl(itemLink, expanded = false) {
+	const control = document.createElement("span");
+	control.className = "link-action";
+	const link = anchor(itemLink, expanded);
+	const info = document.createElement("button");
+	const popover = document.createElement("span");
+	const popoverId = `link-popover-${++linkPopoverId}`;
+	const label = fullLinkLabel(itemLink.label);
+
+	info.type = "button";
+	info.className = "link-info";
+	info.textContent = "i";
+	info.title = label;
+	info.setAttribute("aria-label", `${label} 링크 설명`);
+	info.setAttribute("popovertarget", popoverId);
+	info.addEventListener("click", (event) => event.stopPropagation());
+
+	popover.id = popoverId;
+	popover.className = "link-popover";
+	popover.setAttribute("popover", "auto");
+	popover.textContent = label;
+	popover.addEventListener("click", (event) => event.stopPropagation());
+
+	control.append(link, info, popover);
+	return control;
 }
 
 function anchor(itemLink, expanded = false) {
@@ -350,4 +387,12 @@ function linkItem(type, text, href) {
 
 function escapeHtml(value) {
 	return String(value ?? "").replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[char]));
+}
+
+function runViewTransition(update) {
+	if (document.startViewTransition && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+		document.startViewTransition(update);
+		return;
+	}
+	update();
 }
