@@ -1,4 +1,12 @@
 const CHECK_KEY = "phuquocTravelGuide.checks.v2";
+const EXCHANGE_RATE_ENDPOINT = "https://open.er-api.com/v6/latest/KRW";
+const EXCHANGE_RATE_SOURCE = "https://www.exchangerate-api.com";
+const EXCHANGE_RATE_TIMEOUT = 7000;
+const exchangeRateState = {
+	status: "loading",
+	value: null,
+	updatedAt: ""
+};
 
 const days = [
 	{
@@ -118,6 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	renderTimeTable();
 	renderLinks();
 	renderChecklist();
+	loadExchangeRate();
 });
 
 function event(time, title, body, tags = [], links = [], alert = false) {
@@ -164,7 +173,7 @@ function renderTimeTable() {
 	const header = document.createElement("div");
 	header.className = "table-day-head";
 	const weatherLinks = weatherLink(day);
-	header.innerHTML = `<strong>${escapeHtml(day.label)}(${escapeHtml(weekdayLabel(day))}) ${escapeHtml(day.title)}</strong><span>${escapeHtml(day.subtitle)}</span><div class="weather-links">${weatherLinks.map((weather) => `<a class="weather-link" href="${weather.href}" target="_blank" rel="noreferrer" aria-label="${escapeHtml(weather.title)}"><b aria-hidden="true">${escapeHtml(weather.icon)}</b>${escapeHtml(weather.label)}</a>`).join("")}</div>`;
+	header.innerHTML = `<strong>${escapeHtml(day.label)}(${escapeHtml(weekdayLabel(day))}) ${escapeHtml(day.title)}</strong><span>${escapeHtml(day.subtitle)}</span><div class="weather-links">${weatherLinks.map((weather) => `<a class="weather-link" href="${weather.href}" target="_blank" rel="noreferrer" aria-label="${escapeHtml(weather.title)}"><b aria-hidden="true">${escapeHtml(weather.icon)}</b>${escapeHtml(weather.label)}</a>`).join("")}${exchangeRateLink()}</div>`;
 	const rows = collectTimeRows(day);
 	box.replaceChildren(header, ...rows.map((row, index) => {
 		const element = document.createElement("div");
@@ -374,6 +383,62 @@ function weatherLink(day) {
 function weatherDateLabel(label) {
 	const [month, date] = String(label).split("/");
 	return `2026년 ${Number(month)}월 ${Number(date)}일`;
+}
+
+function loadExchangeRate() {
+	const controller = typeof AbortController === "function" ? new AbortController() : null;
+	const timer = controller ? setTimeout(() => controller.abort(), EXCHANGE_RATE_TIMEOUT) : null;
+	const options = controller ? { cache: "no-store", signal: controller.signal } : { cache: "no-store" };
+	fetch(EXCHANGE_RATE_ENDPOINT, options)
+		.then((response) => {
+			if (!response.ok) {
+				throw new Error(`Exchange rate request failed: ${response.status}`);
+			}
+			return response.json();
+		})
+		.then((data) => {
+			if (data.result !== "success" || typeof data.rates?.VND !== "number") {
+				throw new Error("Exchange rate response does not include VND.");
+			}
+			exchangeRateState.status = "ready";
+			exchangeRateState.value = data.rates.VND;
+			exchangeRateState.updatedAt = data.time_last_update_utc || "";
+			renderTimeTable();
+		})
+		.catch(() => {
+			exchangeRateState.status = "error";
+			exchangeRateState.value = null;
+			exchangeRateState.updatedAt = "";
+			renderTimeTable();
+		})
+		.finally(() => {
+			if (timer) {
+				clearTimeout(timer);
+			}
+		});
+}
+
+function exchangeRateLink() {
+	const state = exchangeRateState;
+	let label = "환율 불러오는 중";
+	let title = "KRW/VND 환율을 불러오는 중입니다.";
+	if (state.status === "ready") {
+		label = `100동 ${formatKrwPerVnd(state.value)}원`;
+		title = `VND/KRW 환율${state.updatedAt ? `, ${state.updatedAt} 기준` : ""}`;
+	} else if (state.status === "error") {
+		label = "환율 확인 필요";
+		title = "KRW/VND 환율을 불러오지 못했습니다.";
+	}
+	return `<a class="weather-link exchange-rate-link" href="${EXCHANGE_RATE_SOURCE}" target="_blank" rel="noreferrer" aria-label="${escapeHtml(title)}"><b aria-hidden="true">₩</b>${escapeHtml(label)}</a>`;
+}
+
+function formatKrwPerVnd(value) {
+	if (typeof value !== "number" || Number.isNaN(value)) {
+		return "-";
+	}
+	return new Intl.NumberFormat("ko-KR", {
+		maximumFractionDigits: 2
+	}).format(100 / value);
 }
 
 function linkItem(type, text, href) {
